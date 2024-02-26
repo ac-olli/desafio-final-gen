@@ -8,7 +8,7 @@ def create_app():
     app = Flask(__name__)
 
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-    # postgres://desafio_782f_user:HetMfgdmmDQXXxfQIE2Bd589FxElotNm@dpg-cne1bsun7f5s73bnj080-a.oregon-postgres.render.com/desafio_782f
+    # postgresql://desafio_782f_user:HetMfgdmmDQXXxfQIE2Bd589FxElotNm@dpg-cne1bsun7f5s73bnj080-a.oregon-postgres.render.com/desafio_782f
 
     api.init_app(app)
     db.init_app(app)

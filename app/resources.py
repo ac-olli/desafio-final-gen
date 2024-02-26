@@ -82,39 +82,94 @@ class PostagemListApi(Resource):
     @ns.expect(postagem_input_model)
     @ns.marshal_with(postagem_model)
     def post(self):
-        print(ns.payload)
         data = datetime.strptime(ns.payload["data"], '%Y-%m-%dT%H:%M:%S.%fZ')
         usuario = User.query.get(ns.payload["usuario_id"])
         tema = Tema.query.get(ns.payload["tema_id"])
-        output = []
         postagem = Postagem(titulo=ns.payload["titulo"], texto=ns.payload["texto"], data=data, usuario=usuario, tema=tema)
 
         db.session.add(postagem)
         db.session.commit()
-        return postagem, 201
+        formatted_postagem = {
+                "id": postagem.id,
+                "titulo": postagem.titulo,
+                "texto": postagem.texto,
+                "data": postagem.data,
+                "usuario_id": {
+                    "id": usuario.id,
+                    "name": usuario.name,
+                    "email": usuario.email,
+                    "foto": usuario.foto
+                },
+                "tema_id": {
+                    "id": tema.id,
+                    "descricao": tema.descricao
+                }
+            }    
+
+        return formatted_postagem
+
     
 @ns.route("/postagem/<int:id>")
 class PostagemApi(Resource):
     @ns.marshal_with(postagem_model)
     def get(self, id):
         postagem = Postagem.query.get(id)
+        usuario = User.query.get(postagem.usuario_id)
+        tema = Tema.query.get(postagem.tema_id)
         if not postagem:
             abort(404, message="Postagem não encontrada")
-        return postagem
 
-    @ns.expect(postagem_input_model)
+        formatted_postagem = {
+                "id": postagem.id,
+                "titulo": postagem.titulo,
+                "texto": postagem.texto,
+                "data": postagem.data,
+                "usuario_id": {
+                    "id": usuario.id,
+                    "name": usuario.name,
+                    "email": usuario.email,
+                    "foto": usuario.foto
+                },
+                "tema_id": {
+                    "id": tema.id,
+                    "descricao": tema.descricao
+                }
+            }    
+
+        return formatted_postagem
+
+    @ns.expect(postagem_put_input)
     @ns.marshal_with(postagem_model)
     def put(self, id):
         postagem = Postagem.query.get(id)
+        
         if not postagem:
             abort(404, message="Postagem não encontrada")
         postagem.titulo = ns.payload["titulo"]
         postagem.texto = ns.payload["texto"]
-        postagem.data = ns.payload["data"]
-        postagem.usuario_id = ns.payload["usuario_id"]
         postagem.tema_id = ns.payload["tema_id"]
         db.session.commit()
-        return postagem
+
+        usuario = User.query.get(postagem.usuario_id)
+        tema = Tema.query.get(postagem.tema_id)
+        formatted_postagem = {
+                "id": postagem.id,
+                "titulo": postagem.titulo,
+                "texto": postagem.texto,
+                "data": postagem.data,
+                "usuario_id": {
+                    "id": usuario.id,
+                    "name": usuario.name,
+                    "email": usuario.email,
+                    "foto": usuario.foto
+                },
+                "tema_id": {
+                    "id": tema.id,
+                    "descricao": tema.descricao
+                }
+            }    
+
+        return formatted_postagem
 
     def delete(self, id):
         postagem = Postagem.query.get(id)
@@ -122,25 +177,13 @@ class PostagemApi(Resource):
         db.session.commit()
         return {}, 204
 
-
 @ns.route("/tema")
 class TemaListApi(Resource):
     @ns.marshal_list_with(tema_model)
     def get(self):
         temas = Tema.query.all()
         return temas
-        # formatted_temas = []
-        # for tema in temas:
-        #     postagens = Postagem.query.filter_by(tema_id=tema.id).all()
-        #     formatted_postagens = [{"id": postagem.id} for postagem in postagens]
-        #     formatted_tema = {
-        #         "id": tema.id,
-        #         "descricao": tema.descricao,
-        #         "postagens": formatted_postagens
-        #     }
-        #     formatted_temas.append(formatted_tema)
-        # return formatted_temas
-    
+        
     @ns.expect(tema_input_model)
     @ns.marshal_with(tema_model)
     def post(self):

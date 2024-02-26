@@ -45,7 +45,11 @@ postagem_input_model = api.model("PostagemInput", {
     "tema_id": fields.Integer
 })
 
-
+postagem_put_input = api.model("PostagemPutInput", {
+    "titulo": fields.String,
+    "texto": fields.String,
+    "tema_id": fields.Integer
+})
 
 
 
